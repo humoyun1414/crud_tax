@@ -1,6 +1,9 @@
 package com.example.demo_crud_project.service;
 
 import com.example.demo_crud_project.domain.CalculationTable;
+import com.example.demo_crud_project.model.CalculateDto;
+import com.example.demo_crud_project.model.CalculateDtoCondition2;
+import com.example.demo_crud_project.model.CalculateDtoCondition3;
 import com.example.demo_crud_project.model.CalculationTableDto;
 import com.example.demo_crud_project.model.request.CalculationTableRequest;
 import com.example.demo_crud_project.repository.CalculationTableRepository;
@@ -75,4 +78,19 @@ public class CalculationTableService {
     }
 
 
+    public List<CalculateDto> calcRate(String month, String limit) {
+        int monthInt = Integer.parseInt(month.split("\\.")[1]);
+        int limitInt = Integer.parseInt(limit);
+        return calculationTableRepository.calculateRate(monthInt, limitInt);
+    }
+
+    public List<CalculateDtoCondition2> calcCondition2(String month) {
+        int monthInt = Integer.parseInt(month.split("\\.")[1]);
+        return calculationTableRepository.calculateCondition2(monthInt);
+    }
+
+    public List<CalculateDtoCondition3> calcCondition3(int orgId, String month) {
+        int monthInt = Integer.parseInt(month.split("\\.")[1]);
+        return calculationTableRepository.calculateCondition3(orgId, monthInt);
+    }
 }

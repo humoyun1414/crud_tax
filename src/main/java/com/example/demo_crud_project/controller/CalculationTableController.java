@@ -1,11 +1,16 @@
 package com.example.demo_crud_project.controller;
 
+import com.example.demo_crud_project.model.CalculateDto;
+import com.example.demo_crud_project.model.CalculateDtoCondition2;
+import com.example.demo_crud_project.model.CalculateDtoCondition3;
 import com.example.demo_crud_project.model.request.CalculationTableRequest;
 import com.example.demo_crud_project.service.CalculationTableService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+
+import java.util.List;
 
 import static com.example.demo_crud_project.util.Constants.DEFAULT_VALUE_PAGE;
 import static com.example.demo_crud_project.util.Constants.DEFAULT_VALUE_SIZE;
@@ -40,5 +45,27 @@ public class CalculationTableController {
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(@PathVariable("id") Integer id) {
         return ResponseEntity.ok(calculationTableService.delete(id));
+    }
+
+    @GetMapping("/calculate1/{month}/{limit}")
+    public ResponseEntity<List<CalculateDto>> calculateRates(@PathVariable(value = "month")
+                                                             String month,
+                                                             @PathVariable(value = "limit")
+                                                             String limit) {
+        return ResponseEntity.ok(calculationTableService.calcRate(month, limit));
+    }
+
+    @GetMapping("/calculate2/{month}")
+    public ResponseEntity<List<CalculateDtoCondition2>> calculateCondition2(@PathVariable(value = "month")
+                                                                            String month) {
+        return ResponseEntity.ok(calculationTableService.calcCondition2(month));
+    }
+
+    @GetMapping("/calculate3/{orgId}/{month}")
+    public ResponseEntity<List<CalculateDtoCondition3>> calculateCondition3(@PathVariable(value = "orgId")
+                                                                            int orgId,
+                                                                            @PathVariable(value = "month")
+                                                                            String month) {
+        return ResponseEntity.ok(calculationTableService.calcCondition3(orgId, month));
     }
 }
