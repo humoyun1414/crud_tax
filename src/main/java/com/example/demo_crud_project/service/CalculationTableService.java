@@ -1,10 +1,9 @@
 package com.example.demo_crud_project.service;
 
 import com.example.demo_crud_project.domain.CalculationTable;
-import com.example.demo_crud_project.model.CalculateDto;
-import com.example.demo_crud_project.model.CalculateDtoCondition2;
-import com.example.demo_crud_project.model.CalculateDtoCondition3;
-import com.example.demo_crud_project.model.CalculationTableDto;
+import com.example.demo_crud_project.domain.Region;
+import com.example.demo_crud_project.exp.ItemNotFoundException;
+import com.example.demo_crud_project.model.*;
 import com.example.demo_crud_project.model.request.CalculationTableRequest;
 import com.example.demo_crud_project.repository.CalculationTableRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -44,17 +43,19 @@ public class CalculationTableService {
 
     }
 
+    private Optional<CalculationTable> existById(Integer id) {
+        Optional<CalculationTable> calculationOptional = calculationTableRepository.findById(id);
+        if (calculationOptional.isEmpty())
+            throw new ItemNotFoundException("CalculationTable not found !");
+        return calculationOptional;
+    }
+
     public CalculationTableDto findById(Integer id) {
-        return calculationTableRepository.findById(id)
-                .map(calculationTable -> objectMapper.convertValue(calculationTable, CalculationTableDto.class)).orElseThrow();
+        return objectMapper.convertValue(existById(id).get(), CalculationTableDto.class);
     }
 
     public Optional<CalculationTableDto> update(Integer id, CalculationTableRequest request) {
-        Optional<CalculationTable> calculationTableOptional = calculationTableRepository.findById(id);
-        if (calculationTableOptional.isEmpty())
-            throw new NoSuchElementException("CalculationTable not found");
-
-        return calculationTableOptional
+        return existById(id)
                 .map(calculationTable -> {
                     calculationTable.setCalculationType(request.calculationType());
                     calculationTable.setAmount(request.amount());
@@ -71,7 +72,7 @@ public class CalculationTableService {
     public Boolean delete(Integer id) {
         Optional<CalculationTable> calculationTableOptional = calculationTableRepository.findById(id);
         if (calculationTableOptional.isEmpty()) {
-            throw new NoSuchElementException("CalculationTable not found");
+            throw new ItemNotFoundException("CalculationTable not found");
         }
         calculationTableRepository.deleteById(id);
         return true;

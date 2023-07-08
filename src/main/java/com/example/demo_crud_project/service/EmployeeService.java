@@ -1,7 +1,7 @@
 package com.example.demo_crud_project.service;
 
 import com.example.demo_crud_project.domain.Employee;
-import com.example.demo_crud_project.exp.EmployeeAlreadyExistsException;
+import com.example.demo_crud_project.exp.ItemNotFoundException;
 import com.example.demo_crud_project.model.EmployeeDto;
 import com.example.demo_crud_project.model.request.EmployeeRequest;
 import com.example.demo_crud_project.repository.EmployeeRepository;
@@ -42,15 +42,21 @@ public class EmployeeService {
 
     }
 
+    private Optional<Employee> existById(Integer id) {
+        Optional<Employee> employeeOptional = employeeRepository.findById(id);
+        if (employeeOptional.isEmpty())
+            throw new ItemNotFoundException("Employee not found !");
+        return employeeOptional;
+    }
+
     public EmployeeDto findById(Integer id) {
-        return employeeRepository.findById(id)
-                .map(employee -> objectMapper.convertValue(employee, EmployeeDto.class)).orElseThrow();
+        return objectMapper.convertValue(existById(id).get(), EmployeeDto.class);
     }
 
     public Optional<EmployeeDto> update(Integer id, EmployeeRequest request) {
         Optional<Employee> employeeOptional = employeeRepository.findById(id);
         if (employeeOptional.isEmpty())
-            throw new NoSuchElementException("Employee not found");
+            throw new ItemNotFoundException("Employee not found");
 
         return employeeOptional
                 .map(employee -> {
@@ -68,7 +74,7 @@ public class EmployeeService {
     public Boolean delete(Integer id) {
         Optional<Employee> employeeOptional = employeeRepository.findById(id);
         if (employeeOptional.isEmpty()) {
-            throw new NoSuchElementException("Employee not found");
+            throw new ItemNotFoundException("Employee not found");
         }
         employeeRepository.deleteById(id);
         return true;

@@ -1,6 +1,7 @@
 package com.example.demo_crud_project.service;
 
 import com.example.demo_crud_project.domain.Organization;
+import com.example.demo_crud_project.exp.ItemNotFoundException;
 import com.example.demo_crud_project.model.OrganizationDto;
 import com.example.demo_crud_project.model.request.OrganizationRequest;
 import com.example.demo_crud_project.repository.OrganizationRepository;
@@ -42,15 +43,21 @@ public class OrganizationService {
 
     }
 
+    private Optional<Organization> existById(Integer id) {
+        Optional<Organization> organizationOptional = organizationRepository.findById(id);
+        if (organizationOptional.isEmpty())
+            throw new ItemNotFoundException("Organization not found !");
+        return organizationOptional;
+    }
+
     public OrganizationDto findById(Integer id) {
-        return organizationRepository.findById(id)
-                .map(organization -> objectMapper.convertValue(organization, OrganizationDto.class)).orElseThrow();
+        return objectMapper.convertValue(existById(id).get(), OrganizationDto.class);
     }
 
     public Optional<OrganizationDto> update(Integer id, OrganizationRequest request) {
         Optional<Organization> organizationOptional = organizationRepository.findById(id);
         if (organizationOptional.isEmpty())
-            throw new NoSuchElementException("Organization not found");
+            throw new ItemNotFoundException("Organization not found");
 
         return organizationOptional
                 .map(organization -> {
@@ -66,7 +73,7 @@ public class OrganizationService {
     public Boolean delete(Integer id) {
         Optional<Organization> organizationOptional = organizationRepository.findById(id);
         if (organizationOptional.isEmpty()) {
-            throw new NoSuchElementException("Organization not found");
+            throw new ItemNotFoundException("Organization not found");
         }
         organizationRepository.deleteById(id);
         return true;

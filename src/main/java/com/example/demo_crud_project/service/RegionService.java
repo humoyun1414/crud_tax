@@ -1,7 +1,8 @@
 package com.example.demo_crud_project.service;
 
 import com.example.demo_crud_project.domain.Region;
-import com.example.demo_crud_project.exp.RegionAlreadyExistsException;
+import com.example.demo_crud_project.exp.ItemAlreadyExistsException;
+import com.example.demo_crud_project.exp.ItemNotFoundException;
 import com.example.demo_crud_project.model.RegionDto;
 import com.example.demo_crud_project.model.request.RegionRequest;
 import com.example.demo_crud_project.repository.RegionRepository;
@@ -28,12 +29,12 @@ public class RegionService {
     public RegionDto create(RegionRequest request) {
         if (regionRepository.findByName(request.name())
                 .isPresent()) {
-            throw new RegionAlreadyExistsException("This Region already exists!");
+            throw new ItemAlreadyExistsException("This Region name already exists!");
         }
         Region region = new Region();
         region.setName(request.name());
         Region savedRegion = regionRepository.save(region);
-        return objectMapper.convertValue(savedRegion,RegionDto.class);
+        return objectMapper.convertValue(savedRegion, RegionDto.class);
     }
 
     public PageImpl<RegionDto> findAll(int page, int size) {
@@ -41,26 +42,28 @@ public class RegionService {
         Pageable pageable = PageRequest.of(page, size);
         Page<Region> regionPage = regionRepository.findAll(pageable);
 
-        regionPage.forEach(region -> dtoList.add(objectMapper.convertValue(region,RegionDto.class)));
+        regionPage.forEach(region -> dtoList.add(objectMapper.convertValue(region, RegionDto.class)));
         return new PageImpl<>(dtoList, pageable, regionPage.getTotalPages());
 
     }
 
+    private Optional<Region> existById(Integer id) {
+        Optional<Region> regionOptional = regionRepository.findById(id);
+        if (regionOptional.isEmpty())
+            throw new ItemNotFoundException("Region not found !");
+        return regionOptional;
+    }
+
     public RegionDto findById(Integer id) {
-        return regionRepository.findById(id)
-                .map(region -> objectMapper.convertValue(region,RegionDto.class)).orElseThrow();
+        return objectMapper.convertValue(existById(id).get(), RegionDto.class);
     }
 
     public Optional<RegionDto> update(Integer id, RegionRequest request) {
-        Optional<Region> regionOptional = regionRepository.findById(id);
-        if (regionOptional.isEmpty())
-            throw new NoSuchElementException("Region not found");
-
-        return regionOptional
+        return existById(id)
                 .map(region -> {
                     region.setName(request.name());
                     Region savedRegion = regionRepository.save(region);
-                    return objectMapper.convertValue(savedRegion,RegionDto.class);
+                    return objectMapper.convertValue(savedRegion, RegionDto.class);
                 });
 
     }
@@ -68,7 +71,7 @@ public class RegionService {
     public Boolean delete(Integer id) {
         Optional<Region> regionOptional = regionRepository.findById(id);
         if (regionOptional.isEmpty()) {
-            throw new NoSuchElementException("Region not found");
+            throw new ItemNotFoundException("Region not found");
         }
         regionRepository.deleteById(id);
         return true;
